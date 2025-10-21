@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparativo Traspaso / Orden de Compra</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      padding: 30px;
+      color: #333;
+    }
+    h2 {
+      color: #0056b3;
+      text-align: center;
+    }
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+    }
+    .upload-box {
+      border: 2px dashed #007bff;
+      padding: 20px;
+      text-align: center;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      background: #f0f8ff;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+    table {
+      width: 600px;
+      border-collapse: collapse;
+      margin: 25px auto;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    #summaryTable {
+      display: none;
+    }
+    #result {
+      text-align: center;
+      font-weight: bold;
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Comparativo de "Traspaso o Orden de Compra" entre Reportes</h2>
+
+  <div class="section">
+    <h3>📘 Cargar Excel ZVA05VTAS</h3>
+    <div class="upload-box">
+      <p>Selecciona el archivo Excel con los encabezados originales (ZVA05VTAS):</p>
+      <input type="file" id="inputExcel1" accept=".xlsx, .xls">
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>📗 Cargar Excel VL06O KUMO</h3>
+    <div class="upload-box">
+      <p>Selecciona el archivo Excel con los encabezados del segundo formato (VL06O KUMO):</p>
+      <input type="file" id="inputExcel2" accept=".xlsx, .xls">
+    </div>
+  </div>
+
+  <div id="result"></div>
+
+  <table id="summaryTable">
+    <thead>
+      <tr>
+        <th>Categoría</th>
+        <th>ZVA05VTAS</th>
+        <th>VL06O KUMO</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let resumen1 = { con: 0, sin: 0, total: 0 };
+    let resumen2 = { con: 0, sin: 0, total: 0 };
+
+    function procesarArchivo(event, tipo) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { defval: 0 });
+
+        let con = 0;
+        let sin = 0;
+
+        json.forEach(row => {
+          const oc = parseFloat(row["Orden de Compra"]) || 0;
+          const traspaso = parseFloat(row["Solicitud de Traspaso"]) || 0;
+          const suma = oc + traspaso;
+          if (suma > 0) con++;
+          else sin++;
+        });
+
+        if (tipo === 1) {
+          resumen1 = { con, sin, total: con + sin };
+        } else {
+          resumen2 = { con, sin, total: con + sin };
+        }
+
+        actualizarTabla();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function actualizarTabla() {
+      const table = document.getElementById("summaryTable");
+      const tbody = table.querySelector("tbody");
+
+      // Mostrar solo si al menos uno se ha cargado
+      if (resumen1.total > 0 || resumen2.total > 0) {
+        table.style.display = "table";
+      } else {
+        table.style.display = "none";
+        return;
+      }
+
+      const totalCon = resumen1.con + resumen2.con;
+      const totalSin = resumen1.sin + resumen2.sin;
+
+      tbody.innerHTML = `
+        <tr><td>Con "Traspaso o OC"</td><td>${resumen1.con}</td><td>${resumen2.con}</td><td>${totalCon}</td></tr>
+        <tr><td>Sin "Traspaso o OC"</td><td>${resumen1.sin}</td><td>${resumen2.sin}</td><td>${totalSin}</td></tr>
+      `;
+
+      document.getElementById("result").innerText =
+        `Archivos cargados: ${resumen1.total > 0 ? "ZVA05VTAS ✅" : ""} ${resumen2.total > 0 ? "VL06O KUMO ✅" : ""}`;
+    }
+
+    document.getElementById("inputExcel1").addEventListener("change", e => procesarArchivo(e, 1));
+    document.getElementById("inputExcel2").addEventListener("change", e => procesarArchivo(e, 2));
+  </script>
+
+</body>
+</html>
