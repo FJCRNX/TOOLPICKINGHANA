@@ -1,166 +1,294 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comparativo Traspaso / Orden de Compra</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fa;
-      padding: 30px;
-      color: #333;
-    }
-    h2 {
-      color: #0056b3;
-      text-align: center;
-    }
-    .section {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 25px;
-    }
-    .upload-box {
-      border: 2px dashed #007bff;
-      padding: 20px;
-      text-align: center;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      background: #f0f8ff;
-    }
-    input[type="file"] {
-      margin-top: 10px;
-    }
-    table {
-      width: 600px;
-      border-collapse: collapse;
-      margin: 25px auto;
-      background: white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 12px;
-      text-align: center;
-    }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    #summaryTable {
-      display: none;
-    }
-    #result {
-      text-align: center;
-      font-weight: bold;
-      margin-top: 20px;
-      font-size: 18px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Herramienta Corte de Procesos</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  * {margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",Roboto,sans-serif;}
+
+  body {
+    display:flex;
+    height:100vh;
+    background:linear-gradient(145deg,#f8f8f8 40%,#e9eef3);
+    color:#222;
+  }
+
+  .sidebar {
+    width:230px;
+    background:linear-gradient(180deg,#b30000 0%,#cc0000 100%);
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    box-shadow:3px 0 10px rgba(0,0,0,0.2);
+  }
+
+  .sidebar h2 {
+    text-align:center;
+    font-size:1.2rem;
+    padding:1.2rem;
+    background-color:rgba(255,255,255,0.1);
+    letter-spacing:0.5px;
+  }
+
+  .menu-item {
+    padding:1rem;
+    border-top:1px solid rgba(255,255,255,0.1);
+    cursor:pointer;
+    transition:all 0.3s ease;
+    font-weight:500;
+    text-align:center;
+  }
+
+  .menu-item:hover {
+    background:#fff;
+    color:#b30000;
+    font-weight:600;
+    box-shadow:inset 0 0 10px rgba(0,0,0,0.15);
+  }
+
+  .main-content {
+    flex:1;
+    padding:2rem;
+    background:linear-gradient(145deg,#ffffff 70%,#e6f0ff);
+    position:relative;
+    overflow-y:auto;
+  }
+
+  .header {
+    font-size:1.8rem;
+    color:#b30000;
+    font-weight:bold;
+    margin-bottom:1.5rem;
+    text-shadow:1px 1px 3px rgba(0,0,0,0.2);
+  }
+
+  .content-block {
+    display:none;
+    animation:fadeIn 0.5s ease-in-out;
+    background:#fff;
+    padding:1.5rem;
+    border-radius:12px;
+    box-shadow:0 3px 8px rgba(0,0,0,0.1);
+    border-left:5px solid #0059b3;
+  }
+
+  .active {display:block;}
+
+  @keyframes fadeIn {
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  footer {
+    position:absolute;
+    bottom:10px;
+    left:0;
+    width:100%;
+    text-align:center;
+    color:#fff;
+    font-size:0.8rem;
+    opacity:0.7;
+  }
+
+  /* === ESTILO INTERNO DEL COMPARATIVO PICKING === */
+  .section {
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom:25px;
+  }
+  .upload-box {
+    border:2px dashed #007bff;
+    padding:20px;
+    text-align:center;
+    border-radius:10px;
+    margin-bottom:15px;
+    background:#f0f8ff;
+  }
+  input[type="file"] {margin-top:10px;}
+  table {
+    width:600px;
+    border-collapse:collapse;
+    margin:25px auto;
+    background:white;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+  }
+  th,td {
+    border:1px solid #ddd;
+    padding:12px;
+    text-align:center;
+  }
+  th {
+    background:#007bff;
+    color:white;
+  }
+  #summaryTable,#deliveryTable {display:none;}
+  #result {
+    text-align:center;
+    font-weight:bold;
+    margin-top:20px;
+    font-size:18px;
+  }
+  .tables-container {
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
+  }
+</style>
 </head>
+
 <body>
-
-  <h2>Comparativo de "Traspaso o Orden de Compra" entre Reportes</h2>
-
-  <div class="section">
-    <h3>📘 Cargar Excel ZVA05VTAS</h3>
-    <div class="upload-box">
-      <p>Selecciona el archivo Excel con los encabezados originales (ZVA05VTAS) "Usando el layout NORMAL para el calculo ya previamente revisado en el manual:</p>
-      <input type="file" id="inputExcel1" accept=".xlsx, .xls">
-    </div>
+  <div class="sidebar">
+    <h2>Corte de procesos FROGMI</h2>
+    <div class="menu-item" onclick="mostrarBloque('pickings')">📦 Pickings</div>
+    <div class="menu-item" onclick="mostrarBloque('traspasos')">🔁 Traspasos</div>
+    <footer>© 2025 Herramienta Corte de Procesos</footer>
   </div>
 
-  <div class="section">
-    <h3>📗 Cargar Excel VL06O KUMO</h3>
-    <div class="upload-box">
-      <p>Selecciona el archivo Excel con los encabezados del segundo formato (VL06O KUMO) "Usando el proceso de bajar la informacion de VL06O para luego cargarla en la ZVA05VTAS para obteenr el reporte completo ya previamente revisado en el manual, usando el layout NORMAL2":</p>
-      <input type="file" id="inputExcel2" accept=".xlsx, .xls">
+  <div class="main-content">
+    <div class="header" id="tituloPrincipal">Herramienta Corte de Procesos</div>
+
+    <!-- === BLOQUE PICKINGS === -->
+    <div id="pickings" class="content-block active">
+      <h3 style="color:#0056b3;text-align:center;margin-bottom:20px;">
+        Comparativo de "Traspaso u Orden de Compra" entre Reportes
+      </h3>
+
+      <div class="section">
+        <h4>📘 Cargar Excel ZVA05VTAS</h4>
+        <div class="upload-box">
+          <p>Selecciona el archivo Excel (layout NORMAL):</p>
+          <input type="file" id="inputExcel1" accept=".xlsx, .xls">
+        </div>
+      </div>
+
+      <div class="section">
+        <h4>📗 Cargar Excel VL06O KUMO</h4>
+        <div class="upload-box">
+          <p>Selecciona el archivo Excel (layout NORMAL2):</p>
+          <input type="file" id="inputExcel2" accept=".xlsx, .xls">
+        </div>
+      </div>
+
+      <div id="result"></div>
+
+      <div class="tables-container">
+        <table id="summaryTable">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>ZVA05VTAS</th>
+              <th>VL06O KUMO</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+
+        <table id="deliveryTable">
+          <thead>
+            <tr>
+              <th>Plazo de Entrega</th>
+              <th>ZVA05VTAS</th>
+              <th>VL06O KUMO</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- === BLOQUE TRASPASOS === -->
+    <div id="traspasos" class="content-block">
+      <h3>Gestión de Traspasos</h3>
+      <p>En contrucción.</p>
     </div>
   </div>
-
-  <div id="result"></div>
-
-  <table id="summaryTable">
-    <thead>
-      <tr>
-        <th>Categoría</th>
-        <th>ZVA05VTAS</th>
-        <th>VL06O KUMO</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 
   <script>
-    let resumen1 = { con: 0, sin: 0, total: 0 };
-    let resumen2 = { con: 0, sin: 0, total: 0 };
+    function mostrarBloque(nombre){
+      document.querySelectorAll('.content-block').forEach(b=>b.classList.remove('active'));
+      document.getElementById(nombre).classList.add('active');
+      const titulo = document.getElementById("tituloPrincipal");
+      titulo.textContent = nombre === "pickings" ? "Calculo de datos Pickings Con/Sin Orden de Compra/Trspaso"
+                                                 : "Calculo de Traspasos Solicitado y pendientes de dar entrada";
+    }
 
-    function procesarArchivo(event, tipo) {
-      const file = event.target.files[0];
-      if (!file) return;
+    // === LÓGICA DEL COMPARATIVO EXCEL ===
+    let resumen1 = {con:0,sin:0,total:0,entregaInmediata:0};
+    let resumen2 = {con:0,sin:0,total:0,entregaInmediata:0};
 
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, { defval: 0 });
+    function procesarArchivo(event,tipo){
+      const file=event.target.files[0];
+      if(!file)return;
+      const reader=new FileReader();
+      reader.onload=function(e){
+        const data=new Uint8Array(e.target.result);
+        const workbook=XLSX.read(data,{type:"array"});
+        const sheet=workbook.Sheets[workbook.SheetNames[0]];
+        const json=XLSX.utils.sheet_to_json(sheet,{defval:0});
 
-        let con = 0;
-        let sin = 0;
-
-        json.forEach(row => {
-          const oc = parseFloat(row["Orden de Compra"]) || 0;
-          const traspaso = parseFloat(row["Solicitud de Traspaso"]) || 0;
-          const suma = oc + traspaso;
-          if (suma > 0) con++;
-          else sin++;
+        let con=0,sin=0,entregaInmediata=0;
+        json.forEach(row=>{
+          const oc=parseFloat(row["Orden de Compra"])||0;
+          const traspaso=parseFloat(row["Solicitud de Traspaso"])||0;
+          const suma=oc+traspaso;
+          if(suma>0)con++; else sin++;
+          for(let key in row){
+            if(typeof row[key]==='string' && row[key].toUpperCase().includes('ENTREGA INMEDIATA')){
+              entregaInmediata++; break;
+            }
+          }
         });
-
-        if (tipo === 1) {
-          resumen1 = { con, sin, total: con + sin };
-        } else {
-          resumen2 = { con, sin, total: con + sin };
-        }
-
-        actualizarTabla();
+        if(tipo===1){resumen1={con,sin,total:con+sin,entregaInmediata};}
+        else{resumen2={con,sin,total:con+sin,entregaInmediata};}
+        actualizarTablas();
       };
       reader.readAsArrayBuffer(file);
     }
 
-    function actualizarTabla() {
-      const table = document.getElementById("summaryTable");
-      const tbody = table.querySelector("tbody");
+    function actualizarTablas(){
+      const summaryTable=document.getElementById("summaryTable");
+      const deliveryTable=document.getElementById("deliveryTable");
+      const summaryTbody=summaryTable.querySelector("tbody");
+      const deliveryTbody=deliveryTable.querySelector("tbody");
 
-      // Mostrar solo si al menos uno se ha cargado
-      if (resumen1.total > 0 || resumen2.total > 0) {
-        table.style.display = "table";
-      } else {
-        table.style.display = "none";
+      if(resumen1.total>0||resumen2.total>0){
+        summaryTable.style.display="table";
+        deliveryTable.style.display="table";
+      }else{
+        summaryTable.style.display="none";
+        deliveryTable.style.display="none";
         return;
       }
 
-      const totalCon = resumen1.con + resumen2.con;
-      const totalSin = resumen1.sin + resumen2.sin;
-
-      tbody.innerHTML = `
+      const totalCon=resumen1.con+resumen2.con;
+      const totalSin=resumen1.sin+resumen2.sin;
+      summaryTbody.innerHTML=`
         <tr><td>Con "Traspaso o OC"</td><td>${resumen1.con}</td><td>${resumen2.con}</td><td>${totalCon}</td></tr>
         <tr><td>Sin "Traspaso o OC"</td><td>${resumen1.sin}</td><td>${resumen2.sin}</td><td>${totalSin}</td></tr>
       `;
 
-      document.getElementById("result").innerText =
-        `Archivos cargados: ${resumen1.total > 0 ? "ZVA05VTAS ✅" : ""} ${resumen2.total > 0 ? "VL06O KUMO ✅" : ""}`;
+      const totalEntregaInmediata=resumen1.entregaInmediata+resumen2.entregaInmediata;
+      deliveryTbody.innerHTML=`
+        <tr><td>ENTREGA INMEDIATA</td><td>${resumen1.entregaInmediata}</td><td>${resumen2.entregaInmediata}</td><td>${totalEntregaInmediata}</td></tr>
+      `;
+
+      document.getElementById("result").innerText=
+        `Archivos cargados: ${resumen1.total>0?"ZVA05VTAS ✅":""} ${resumen2.total>0?"VL06O KUMO ✅":""}`;
     }
 
-    document.getElementById("inputExcel1").addEventListener("change", e => procesarArchivo(e, 1));
-    document.getElementById("inputExcel2").addEventListener("change", e => procesarArchivo(e, 2));
+    document.getElementById("inputExcel1").addEventListener("change",e=>procesarArchivo(e,1));
+    document.getElementById("inputExcel2").addEventListener("change",e=>procesarArchivo(e,2));
   </script>
-
 </body>
 </html>
+
 
 
