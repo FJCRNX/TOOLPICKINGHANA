@@ -1,294 +1,437 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Herramienta Corte de Procesos</title>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-  * {margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",Roboto,sans-serif;}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:"Segoe UI",Roboto,Arial,sans-serif}
+  body{display:flex;height:100vh;background:linear-gradient(145deg,#f8f8f8 40%,#e9eef3);color:#222}
 
-  body {
-    display:flex;
-    height:100vh;
-    background:linear-gradient(145deg,#f8f8f8 40%,#e9eef3);
-    color:#222;
-  }
-
-  .sidebar {
-    width:230px;
+  /* SIDEBAR */
+  .sidebar{
+    width:300px;
+    min-width:260px;
     background:linear-gradient(180deg,#b30000 0%,#cc0000 100%);
     color:#fff;
+    padding:18px;
     display:flex;
     flex-direction:column;
-    align-items:stretch;
-    box-shadow:3px 0 10px rgba(0,0,0,0.2);
+    gap:10px;
+    box-shadow:3px 0 12px rgba(0,0,0,.18);
   }
-
-  .sidebar h2 {
+  .brand{
     text-align:center;
-    font-size:1.2rem;
-    padding:1.2rem;
-    background-color:rgba(255,255,255,0.1);
-    letter-spacing:0.5px;
+    padding:8px 0 14px;
+    border-bottom:1px solid rgba(255,255,255,.06);
   }
-
-  .menu-item {
-    padding:1rem;
-    border-top:1px solid rgba(255,255,255,0.1);
-    cursor:pointer;
-    transition:all 0.3s ease;
-    font-weight:500;
-    text-align:center;
+  .brand h2{font-size:16px;letter-spacing:.6px;margin-bottom:6px}
+  .menu{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .menu button{
+    background:transparent;border:1px solid rgba(255,255,255,.08);
+    color:#fff;padding:10px;border-radius:8px;cursor:pointer;text-align:left;font-weight:600;
+    display:flex;align-items:center;gap:8px
   }
-
-  .menu-item:hover {
-    background:#fff;
-    color:#b30000;
-    font-weight:600;
-    box-shadow:inset 0 0 10px rgba(0,0,0,0.15);
-  }
-
-  .main-content {
-    flex:1;
-    padding:2rem;
-    background:linear-gradient(145deg,#ffffff 70%,#e6f0ff);
-    position:relative;
-    overflow-y:auto;
-  }
-
-  .header {
-    font-size:1.8rem;
-    color:#b30000;
-    font-weight:bold;
-    margin-bottom:1.5rem;
-    text-shadow:1px 1px 3px rgba(0,0,0,0.2);
-  }
-
-  .content-block {
+  .menu button.active{background:#fff;color:#b30000;border-color:rgba(0,0,0,.06)}
+  .side-report{
+    margin-top:auto;
+    background:linear-gradient(180deg,#0059b3,#00448a);
+    padding:12px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.2);
     display:none;
-    animation:fadeIn 0.5s ease-in-out;
-    background:#fff;
-    padding:1.5rem;
-    border-radius:12px;
-    box-shadow:0 3px 8px rgba(0,0,0,0.1);
-    border-left:5px solid #0059b3;
   }
+  .side-report h3{margin:0 0 6px;font-size:14px}
+  .side-report p{font-size:13px;color:rgba(255,255,255,.95);line-height:1.3}
+  .side-report .small{font-size:12px;opacity:.9;margin-top:8px;color:rgba(255,255,255,.9)}
+  .side-report .chip{background:rgba(255,255,255,.12);padding:6px;border-radius:6px;display:inline-block;margin:6px 4px 0 0}
 
-  .active {display:block;}
+  footer.smallfoot{color:rgba(255,255,255,.7);font-size:12px;text-align:center;margin-top:10px}
+  
+  /* MAIN */
+  .main{flex:1;padding:20px;overflow:auto}
+  .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+  .title{font-size:1.6rem;color:#b30000;font-weight:700;text-shadow:1px 1px 2px rgba(0,0,0,.08)}
+  .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);margin-bottom:18px}
 
-  @keyframes fadeIn {
-    from{opacity:0;transform:translateY(10px);}
-    to{opacity:1;transform:translateY(0);}
+  /* Upload boxes */
+  .upload{
+    border:2px dashed #007bff;background:#f0f8ff;padding:14px;border-radius:10px;text-align:center;margin-bottom:12px
   }
+  input[type=file]{margin-top:10px}
 
-  footer {
-    position:absolute;
-    bottom:10px;
-    left:0;
-    width:100%;
-    text-align:center;
-    color:#fff;
-    font-size:0.8rem;
-    opacity:0.7;
-  }
+  /* Tables */
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{border:1px solid #e6e9ef;padding:8px;text-align:left;font-size:13px}
+  th{background:#007bff;color:#fff}
+  .table-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .muted{color:#666;font-size:13px}
+  .count-badge{color:#b30000;font-weight:800;font-size:18px}
 
-  /* === ESTILO INTERNO DEL COMPARATIVO PICKING === */
-  .section {
-    background:white;
-    border-radius:12px;
-    padding:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-    margin-bottom:25px;
-  }
-  .upload-box {
-    border:2px dashed #007bff;
-    padding:20px;
-    text-align:center;
-    border-radius:10px;
-    margin-bottom:15px;
-    background:#f0f8ff;
-  }
-  input[type="file"] {margin-top:10px;}
-  table {
-    width:600px;
-    border-collapse:collapse;
-    margin:25px auto;
-    background:white;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-  }
-  th,td {
-    border:1px solid #ddd;
-    padding:12px;
-    text-align:center;
-  }
-  th {
-    background:#007bff;
-    color:white;
-  }
-  #summaryTable,#deliveryTable {display:none;}
-  #result {
-    text-align:center;
-    font-weight:bold;
-    margin-top:20px;
-    font-size:18px;
-  }
-  .tables-container {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:20px;
+  /* Responsive adjustments */
+  @media (max-width:900px){
+    .sidebar{display:none}
+    body{flex-direction:column}
+    .main{padding:14px}
   }
 </style>
 </head>
-
 <body>
-  <div class="sidebar">
-    <h2>Corte de procesos FROGMI</h2>
-    <div class="menu-item" onclick="mostrarBloque('pickings')">📦 Pickings</div>
-    <div class="menu-item" onclick="mostrarBloque('traspasos')">🔁 Traspasos</div>
-    <footer>© 2025 Herramienta Corte de Procesos</footer>
-  </div>
 
-  <div class="main-content">
-    <div class="header" id="tituloPrincipal">Herramienta Corte de Procesos</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <h2>Herramienta para corte de procesos FROGMI</h2>
+      <div class="muted">Panel lateral de control</div>
+    </div>
 
-    <!-- === BLOQUE PICKINGS === -->
-    <div id="pickings" class="content-block active">
-      <h3 style="color:#0056b3;text-align:center;margin-bottom:20px;">
-        Comparativo de "Traspaso u Orden de Compra" entre Reportes
-      </h3>
+    <nav class="menu">
+      <button id="btnPickings" class="active" onclick="mostrarBloque('pickings', this)">📦 Pickings</button>
+      <button id="btnTraspasos" onclick="mostrarBloque('traspasos', this)">🔁 Traspasos</button>
+    </nav>
+
+    <div class="side-report" id="sideReport">
+      <h3>📄 Informe de Traspasos</h3>
+      <div id="sideSummary">
+        <!-- Contenido generado dinámicamente -->
+        <p class="muted">Aún no se han cargado archivos</p>
+      </div>
+      <div class="small" id="sideDetails"></div>
+    </div>
+
+    <div style="flex:0 0 auto">
+      <footer class="smallfoot">© 2025 FJCR24102025</footer>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="header">
+      <div class="title" id="tituloPrincipal">Herramienta Corte de Procesos</div>
+    </div>
+
+    <!-- PICKINGS (mantengo tu comparativo previo) -->
+    <section id="pickings" class="card">
+      <h3 style="color:#0056b3;text-align:center;margin-bottom:12px">Comparativo de "Traspaso u Orden de Compra"</h3>
+
+      <div class="card section" style="box-shadow:none;padding:10px;background:transparent">
+        <div class="upload">
+          <strong>📘 Cargar Excel ZVA05VTAS (layout NORMAL)</strong>
+          <br><input type="file" id="inputExcel1" accept=".xlsx,.xls">
+        </div>
+
+        <div class="upload">
+          <strong>📗 Cargar Excel VL06O KUMO (layout NORMAL2)</strong>
+          <br><input type="file" id="inputExcel2" accept=".xlsx,.xls">
+        </div>
+
+        <div id="result" class="muted" style="text-align:center;margin-top:8px"></div>
+
+        <div class="tables-container" style="margin-top:14px">
+          <table id="summaryTable" style="display:none">
+            <thead>
+              <tr><th>Categoría</th><th>ZVA05VTAS</th><th>VL06O KUMO</th><th>Total</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <table id="deliveryTable" style="display:none">
+            <thead>
+              <tr><th>Plazo de Entrega</th><th>ZVA05VTAS</th><th>VL06O KUMO</th><th>Total</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRASPASOS -->
+    <section id="traspasos" class="card" style="display:none">
+      <h3 style="color:#0056b3;text-align:center;margin-bottom:12px">Traspasos — comparación de solicitudes</h3>
 
       <div class="section">
-        <h4>📘 Cargar Excel ZVA05VTAS</h4>
-        <div class="upload-box">
-          <p>Selecciona el archivo Excel (layout NORMAL):</p>
-          <input type="file" id="inputExcel1" accept=".xlsx, .xls">
+        <div class="upload">
+          <strong>📘 Cargar Excel 1 — Traspasos no surtidos por centro suministrador</strong><br>
+          <input type="file" id="fileTraspaso1" accept=".xlsx,.xls">
+        </div>
+
+        <div class="upload">
+          <strong>📗 Cargar Excel 2 — Traspasos sin entrada material con salida</strong><br>
+          <input type="file" id="fileTraspaso2" accept=".xlsx,.xls">
+        </div>
+
+        <div style="display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap">
+          <div class="muted">Conteo únicos:</div>
+          <div>Traspasos no surtidos por centro suministrador: <span id="count1" class="count-badge">0</span></div>
+          <div>Traspasos sin entrada material con salida: <span id="count2" class="count-badge">0</span></div>
+          <div>Coincidencias: <span id="countCommon" class="count-badge">0</span></div>
         </div>
       </div>
 
-      <div class="section">
-        <h4>📗 Cargar Excel VL06O KUMO</h4>
-        <div class="upload-box">
-          <p>Selecciona el archivo Excel (layout NORMAL2):</p>
-          <input type="file" id="inputExcel2" accept=".xlsx, .xls">
+      <div style="margin-top:12px" id="tablesHolder">
+        <div class="table-grid">
+          <div class="card" style="padding:10px">
+            <strong>✳️ Únicas - Traspasos no surtidos por centro suministrador</strong>
+            <div id="table1Wrap" style="max-height:360px;overflow:auto;margin-top:8px">
+              <table id="table1" style="width:100%">
+                <thead><tr><th>Solicitud de Traspaso</th><th>Ocurrencias</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="padding:10px">
+            <strong>✳️ Únicas - Traspasos sin entrada material con salida</strong>
+            <div id="table2Wrap" style="max-height:360px;overflow:auto;margin-top:8px">
+              <table id="table2" style="width:100%">
+                <thead><tr><th>Solicitud de Traspaso</th><th>Ocurrencias</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="commonCard" style="margin-top:12px;display:none">
+          <strong>🔗 Coincidencias entre archivos (muestras)</strong>
+          <div id="commonList" style="max-height:220px;overflow:auto;margin-top:8px">
+            <!-- coincidencias listadas aquí -->
+          </div>
         </div>
       </div>
 
-      <div id="result"></div>
+    </section>
+  </main>
 
-      <div class="tables-container">
-        <table id="summaryTable">
-          <thead>
-            <tr>
-              <th>Categoría</th>
-              <th>ZVA05VTAS</th>
-              <th>VL06O KUMO</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+<script>
+  // -------------------------
+  // VISTAS (sidebar buttons)
+  // -------------------------
+  function mostrarBloque(id, btn) {
+    // botones active
+    document.querySelectorAll('.menu button').forEach(b=>b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
 
-        <table id="deliveryTable">
-          <thead>
-            <tr>
-              <th>Plazo de Entrega</th>
-              <th>ZVA05VTAS</th>
-              <th>VL06O KUMO</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </div>
+    // mostrar bloques
+    document.getElementById('pickings').style.display = id === 'pickings' ? 'block' : 'none';
+    document.getElementById('traspasos').style.display = id === 'traspasos' ? 'block' : 'none';
 
-    <!-- === BLOQUE TRASPASOS === -->
-    <div id="traspasos" class="content-block">
-      <h3>Gestión de Traspasos</h3>
-      <p>En contrucción.</p>
-    </div>
-  </div>
+    // cambiar título
+    document.getElementById('tituloPrincipal').textContent =
+      id === 'pickings' ? 'Comparativo Pickings / Orden de Compra' : 'Gestión / Reporte de Traspasos';
+  }
 
-  <script>
-    function mostrarBloque(nombre){
-      document.querySelectorAll('.content-block').forEach(b=>b.classList.remove('active'));
-      document.getElementById(nombre).classList.add('active');
-      const titulo = document.getElementById("tituloPrincipal");
-      titulo.textContent = nombre === "pickings" ? "Calculo de datos Pickings Con/Sin Orden de Compra/Trspaso"
-                                                 : "Calculo de Traspasos Solicitado y pendientes de dar entrada";
-    }
+  // -------------------------
+  // PICKINGS (mantener funcionalidad anterior)
+  // -------------------------
+  let resumen1={con:0,sin:0,total:0,entregaInmediata:0};
+  let resumen2={con:0,sin:0,total:0,entregaInmediata:0};
 
-    // === LÓGICA DEL COMPARATIVO EXCEL ===
-    let resumen1 = {con:0,sin:0,total:0,entregaInmediata:0};
-    let resumen2 = {con:0,sin:0,total:0,entregaInmediata:0};
+  function procesarArchivo(event,tipo){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data,{type:'array'});
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet,{defval:0});
 
-    function procesarArchivo(event,tipo){
-      const file=event.target.files[0];
-      if(!file)return;
-      const reader=new FileReader();
-      reader.onload=function(e){
-        const data=new Uint8Array(e.target.result);
-        const workbook=XLSX.read(data,{type:"array"});
-        const sheet=workbook.Sheets[workbook.SheetNames[0]];
-        const json=XLSX.utils.sheet_to_json(sheet,{defval:0});
-
-        let con=0,sin=0,entregaInmediata=0;
-        json.forEach(row=>{
-          const oc=parseFloat(row["Orden de Compra"])||0;
-          const traspaso=parseFloat(row["Solicitud de Traspaso"])||0;
-          const suma=oc+traspaso;
-          if(suma>0)con++; else sin++;
-          for(let key in row){
-            if(typeof row[key]==='string' && row[key].toUpperCase().includes('ENTREGA INMEDIATA')){
-              entregaInmediata++; break;
-            }
+      let con=0,sin=0,entregaInmediata=0;
+      json.forEach(row=>{
+        const oc = parseFloat(row["Orden de Compra"])||0;
+        const traspaso = parseFloat(row["Solicitud de Traspaso"])||0;
+        const suma = oc + traspaso;
+        if(suma>0) con++; else sin++;
+        for(let key in row){
+          if(typeof row[key] === 'string' && row[key].toUpperCase().includes('ENTREGA INMEDIATA')){
+            entregaInmediata++; break;
           }
-        });
-        if(tipo===1){resumen1={con,sin,total:con+sin,entregaInmediata};}
-        else{resumen2={con,sin,total:con+sin,entregaInmediata};}
-        actualizarTablas();
-      };
-      reader.readAsArrayBuffer(file);
+        }
+      });
+
+      if(tipo===1) resumen1 = {con,sin,total:con+sin,entregaInmediata};
+      else resumen2 = {con,sin,total:con+sin,entregaInmediata};
+      actualizarTablas();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function actualizarTablas(){
+    const summaryTable = document.getElementById('summaryTable');
+    const deliveryTable = document.getElementById('deliveryTable');
+    const summaryTbody = summaryTable.querySelector('tbody');
+    const deliveryTbody = deliveryTable.querySelector('tbody');
+
+    if(resumen1.total>0 || resumen2.total>0){
+      summaryTable.style.display = 'table';
+      deliveryTable.style.display = 'table';
+    } else {
+      summaryTable.style.display = 'none';
+      deliveryTable.style.display = 'none';
+      return;
     }
 
-    function actualizarTablas(){
-      const summaryTable=document.getElementById("summaryTable");
-      const deliveryTable=document.getElementById("deliveryTable");
-      const summaryTbody=summaryTable.querySelector("tbody");
-      const deliveryTbody=deliveryTable.querySelector("tbody");
+    const totalCon = resumen1.con + resumen2.con;
+    const totalSin = resumen1.sin + resumen2.sin;
 
-      if(resumen1.total>0||resumen2.total>0){
-        summaryTable.style.display="table";
-        deliveryTable.style.display="table";
-      }else{
-        summaryTable.style.display="none";
-        deliveryTable.style.display="none";
-        return;
-      }
+    summaryTbody.innerHTML = `
+      <tr><td>Con "Traspaso o OC"</td><td>${resumen1.con}</td><td>${resumen2.con}</td><td>${totalCon}</td></tr>
+      <tr><td>Sin "Traspaso o OC"</td><td>${resumen1.sin}</td><td>${resumen2.sin}</td><td>${totalSin}</td></tr>
+    `;
 
-      const totalCon=resumen1.con+resumen2.con;
-      const totalSin=resumen1.sin+resumen2.sin;
-      summaryTbody.innerHTML=`
-        <tr><td>Con "Traspaso o OC"</td><td>${resumen1.con}</td><td>${resumen2.con}</td><td>${totalCon}</td></tr>
-        <tr><td>Sin "Traspaso o OC"</td><td>${resumen1.sin}</td><td>${resumen2.sin}</td><td>${totalSin}</td></tr>
-      `;
+    const totalEntregaInmediata = resumen1.entregaInmediata + resumen2.entregaInmediata;
+    deliveryTbody.innerHTML = `
+      <tr><td>ENTREGA INMEDIATA</td><td>${resumen1.entregaInmediata}</td><td>${resumen2.entregaInmediata}</td><td>${totalEntregaInmediata}</td></tr>
+    `;
 
-      const totalEntregaInmediata=resumen1.entregaInmediata+resumen2.entregaInmediata;
-      deliveryTbody.innerHTML=`
-        <tr><td>ENTREGA INMEDIATA</td><td>${resumen1.entregaInmediata}</td><td>${resumen2.entregaInmediata}</td><td>${totalEntregaInmediata}</td></tr>
-      `;
+    document.getElementById('result').innerText =
+      `Archivos cargados: ${resumen1.total>0 ? "ZVA05VTAS ✅" : ""} ${resumen2.total>0 ? "VL06O KUMO ✅" : ""}`;
+  }
 
-      document.getElementById("result").innerText=
-        `Archivos cargados: ${resumen1.total>0?"ZVA05VTAS ✅":""} ${resumen2.total>0?"VL06O KUMO ✅":""}`;
+  document.getElementById('inputExcel1').addEventListener('change', e => procesarArchivo(e,1));
+  document.getElementById('inputExcel2').addEventListener('change', e => procesarArchivo(e,2));
+
+  // -------------------------
+  // TRASPASOS (2 archivos) 
+  // - genera tablas con solicit. únicas + ocurrencias
+  // - muestra resumen en panel lateral
+  // -------------------------
+  let dataA = [], dataB = [];
+
+  document.getElementById('fileTraspaso1').addEventListener('change', e => cargarTraspaso(e, 'A'));
+  document.getElementById('fileTraspaso2').addEventListener('change', e => cargarTraspaso(e, 'B'));
+
+  function cargarTraspaso(e, which){
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(evt){
+      const data = new Uint8Array(evt.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, {defval:""});
+      if(which === 'A') dataA = json;
+      else dataB = json;
+      procesarTraspasos();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function procesarTraspasos(){
+    // maps: solicitud => ocurrencias
+    const mapA = {};
+    const mapB = {};
+
+    dataA.forEach(r=>{
+      const key = (r["Solicitud de Traspaso"] || '').toString().trim();
+      if(!key) return;
+      mapA[key] = (mapA[key] || 0) + 1;
+    });
+    dataB.forEach(r=>{
+      const key = (r["Solicitud de Traspaso"] || '').toString().trim();
+      if(!key) return;
+      mapB[key] = (mapB[key] || 0) + 1;
+    });
+
+    // crear tablas HTML
+    const tbody1 = document.querySelector('#table1 tbody');
+    const tbody2 = document.querySelector('#table2 tbody');
+    tbody1.innerHTML = ''; tbody2.innerHTML = '';
+
+    // ordenar alfabéticamente por clave (mejor lectura)
+    const keysA = Object.keys(mapA).sort((a,b)=>a.localeCompare(b,'es'));
+    const keysB = Object.keys(mapB).sort((a,b)=>a.localeCompare(b,'es'));
+
+    keysA.forEach(k=>{
+      const tr = document.createElement('tr');
+      const tdk = document.createElement('td'); tdk.textContent = k;
+      const tdc = document.createElement('td'); tdc.textContent = mapA[k];
+      tr.appendChild(tdk); tr.appendChild(tdc); tbody1.appendChild(tr);
+    });
+
+    keysB.forEach(k=>{
+      const tr = document.createElement('tr');
+      const tdk = document.createElement('td'); tdk.textContent = k;
+      const tdc = document.createElement('td'); tdc.textContent = mapB[k];
+      tr.appendChild(tdk); tr.appendChild(tdc); tbody2.appendChild(tr);
+    });
+
+    // counts (únicos)
+    const uniqueA = keysA.length;
+    const uniqueB = keysB.length;
+    document.getElementById('count1').textContent = uniqueA;
+    document.getElementById('count2').textContent = uniqueB;
+
+    // coincidencias (intersección)
+    const setA = new Set(keysA);
+    const setB = new Set(keysB);
+    const common = [...setA].filter(x => setB.has(x));
+    document.getElementById('countCommon').textContent = common.length;
+
+    // mostrar lista de coincidencias (máx 50)
+    const commonListEl = document.getElementById('commonList');
+    commonListEl.innerHTML = '';
+    if(common.length){
+      document.getElementById('commonCard').style.display = 'block';
+      common.slice(0,50).forEach(c=>{
+        const div = document.createElement('div');
+        div.style.padding = '6px 8px';
+        div.style.borderBottom = '1px solid #eee';
+        div.textContent = c + '  (A:' + (mapA[c]||0) + ' · B:' + (mapB[c]||0) + ')';
+        commonListEl.appendChild(div);
+      });
+    } else {
+      document.getElementById('commonCard').style.display = 'none';
     }
 
-    document.getElementById("inputExcel1").addEventListener("change",e=>procesarArchivo(e,1));
-    document.getElementById("inputExcel2").addEventListener("change",e=>procesarArchivo(e,2));
-  </script>
+    // Update side report
+    updateSideReport({
+      uniqueA,
+      uniqueB,
+      totalRowsA: dataA.length,
+      totalRowsB: dataB.length,
+      commonCount: common.length,
+      sampleCommon: common.slice(0,50)
+    });
+  }
+
+  function updateSideReport(info){
+    const panel = document.getElementById('sideReport');
+    const summary = document.getElementById('sideSummary');
+    const details = document.getElementById('sideDetails');
+    panel.style.display = 'block';
+
+    summary.innerHTML = `
+      <p><strong>Archivo 1:</strong> ${info.totalRowsA} renglones — <strong>${info.uniqueA}</strong> solicitudes únicas</p>
+      <p><strong>Archivo 2:</strong> ${info.totalRowsB} renglones — <strong>${info.uniqueB}</strong> solicitudes únicas</p>
+      <p style="margin-top:6px"><strong>Coincidencias entre ambos:</strong> ${info.commonCount}</p>
+    `;
+
+    if(info.sampleCommon && info.sampleCommon.length){
+      details.innerHTML = '<div class="muted">Coincidencias (muestra hasta 50):</div>';
+      details.innerHTML += '<div style="margin-top:6px">';
+      info.sampleCommon.forEach(s=>{
+        details.innerHTML += `<span class="chip">${escapeHtml(s)}</span>`;
+      });
+      details.innerHTML += '</div>';
+    } else {
+      details.innerHTML = '<div class="muted">No se detectaron coincidencias.</div>';
+    }
+  }
+
+  // util escape para mostrar texto seguro en HTML
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Inicial: mostrar pickings
+  mostrarBloque('pickings', document.getElementById('btnPickings'));
+
+</script>
 </body>
 </html>
+
+
 
 
 
