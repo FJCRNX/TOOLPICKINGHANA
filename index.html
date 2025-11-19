@@ -15,52 +15,89 @@
     background:linear-gradient(180deg,#b30000 0%,#cc0000 100%);
     color:#fff;padding:18px;display:flex;flex-direction:column;gap:10px;
     box-shadow:3px 0 12px rgba(0,0,0,.18);
+    z-index: 10;
   }
   .brand{text-align:center;padding:8px 0 14px;border-bottom:1px solid rgba(255,255,255,.06)}
   .brand h2{font-size:16px;letter-spacing:.6px;margin-bottom:6px}
   .menu{display:flex;flex-direction:column;gap:8px;margin-top:10px}
   .menu button{
     background:transparent;border:1px solid rgba(255,255,255,.08);
-    color:#fff;padding:10px;border-radius:8px;cursor:pointer;text-align:left;font-weight:600;
+    color:#fff;padding:12px;border-radius:8px;cursor:pointer;text-align:left;font-weight:600;
     display:flex;align-items:center;gap:8px;transition:.15s;
+    font-size: 14px;
   }
   .menu button.active{background:#fff;color:#b30000;border-color:rgba(0,0,0,.06)}
   .menu button:hover{background:rgba(255,255,255,.06)}
-  footer.smallfoot{color:rgba(255,255,255,.7);font-size:12px;text-align:center;margin-top:10px}
+  footer.smallfoot{color:rgba(255,255,255,.7);font-size:12px;text-align:center;margin-top:auto;padding-top: 20px;}
 
   /* MAIN */
   .main{flex:1;padding:20px;overflow:auto}
   .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
   .title{font-size:1.4rem;color:#b30000;font-weight:700;text-shadow:1px 1px 2px rgba(0,0,0,.08)}
-  .card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);margin-bottom:18px}
+  .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 6px 16px rgba(0,0,0,.06);margin-bottom:18px}
 
-  .upload{border:2px dashed #007bff;background:#f0f8ff;padding:12px;border-radius:10px;text-align:center;margin-bottom:12px}
-  input[type=file]{margin-top:8px}
+  .upload{border:2px dashed #007bff;background:#f0f8ff;padding:16px;border-radius:10px;text-align:center;margin-bottom:12px;transition: all 0.3s;}
+  .upload:hover{background:#e0f0ff;border-color:#0056b3;}
+  input[type=file]{margin-top:8px;padding: 8px;border-radius: 4px;border: 1px solid #ccc;width: 100%;max-width: 300px;}
 
   table{width:100%;border-collapse:collapse;margin-top:12px}
-  th,td{border:1px solid #e6e9ef;padding:8px;text-align:left;font-size:13px}
+  th,td{border:1px solid #e6e9ef;padding:10px;text-align:left;font-size:13px}
   th{background:#007bff;color:#fff}
   .muted{color:#666;font-size:13px}
   .count-badge{color:#b30000;font-weight:800;font-size:18px}
+  
+  /* Status indicators */
+  .status{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600}
+  .status.success{background:#e6f7ee;color:#0d6832}
+  .status.warning{background:#fff8e6;color:#8a6500}
+  .status.danger{background:#ffe6e6;color:#b30000}
+  
+  /* Progress indicators */
+  .progress-container{width:100%;background:#f0f0f0;border-radius:10px;overflow:hidden;margin:8px 0}
+  .progress-bar{height:8px;background:#007bff;transition:width 0.3s}
+  
+  /* File upload status */
+  .file-status{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px}
+  .file-status.success{color:#0d6832}
+  .file-status.error{color:#b30000}
 
   /* Informe cards */
   .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .report-card{background:#fff;border-radius:10px;padding:12px;box-shadow:0 6px 12px rgba(0,0,0,.06)}
+  .report-card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 6px 12px rgba(0,0,0,.06);border-left:4px solid #007bff}
   .report-card h4{margin-bottom:8px;color:#0056b3}
   .small{font-size:13px;color:#555}
+  
+  /* Summary cards */
+  .summary-card{display:flex;flex-direction:column;background:#fff;border-radius:10px;padding:16px;box-shadow:0 4px 8px rgba(0,0,0,.06);border-top:4px solid #007bff}
+  .summary-card .value{font-size:24px;font-weight:700;color:#b30000;margin:8px 0}
+  .summary-card .label{font-size:13px;color:#666}
+  
+  /* Mobile menu toggle */
+  .mobile-toggle{display:none;position:fixed;top:10px;left:10px;z-index:20;background:#b30000;color:white;border:none;border-radius:4px;padding:8px;cursor:pointer}
+  
+  /* Action buttons */
+  .action-btn{background:#007bff;color:white;border:none;border-radius:6px;padding:10px 16px;cursor:pointer;font-weight:600;transition:background 0.2s}
+  .action-btn:hover{background:#0056b3}
+  .action-btn.secondary{background:#6c757d}
+  .action-btn.secondary:hover{background:#545b62}
 
   @media (max-width:900px){
-    .sidebar{display:none}
+    .sidebar{display:none;position:fixed;height:100%;width:280px}
+    .sidebar.active{display:flex}
     body{flex-direction:column}
     .main{padding:12px}
     .report-grid{grid-template-columns:1fr}
+    .mobile-toggle{display:block}
   }
 </style>
 </head>
 <body>
 
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-toggle" id="mobileToggle">☰</button>
+
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
       <h2>Herramienta Corte de Procesos FROGMI</h2>
       <div class="muted">Panel lateral de control</div>
@@ -72,61 +109,113 @@
       <button id="btnInforme" onclick="generarInforme()">📊 Informe General</button>
     </nav>
 
-    <footer class="smallfoot">© 2025 FJCR24102025</footer>
+    <div class="status-summary" style="margin-top: 20px; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+      <h4 style="margin-bottom: 10px; font-size: 14px;">Estado Actual</h4>
+      <div id="statusPickings" class="file-status">📦 Pickings: Sin datos</div>
+      <div id="statusTraspasos" class="file-status">🔁 Traspasos: Sin datos</div>
+    </div>
+
+    <footer class="smallfoot">© 2025 CEREZO VER.19112025</footer>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
     <div class="header">
       <div class="title" id="tituloPrincipal">Herramienta Corte de Procesos</div>
+      <div class="action-buttons" style="display: flex; gap: 8px;">
+        <button class="action-btn secondary" onclick="resetAll()">🔄 Reiniciar</button>
+        <button class="action-btn" onclick="exportToExcel()">📥 Exportar</button>
+      </div>
     </div>
 
     <!-- PICKINGS -->
     <section id="pickings" class="card">
       <h3 style="color:#0056b3;text-align:center;margin-bottom:12px">Comparativo de Pickings</h3>
+      
+      <div class="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div class="summary-card">
+          <div class="label">Total Pickings</div>
+          <div class="value" id="totalPickings">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Con OC/Traspaso</div>
+          <div class="value" id="conOcTraspaso">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Sin OC/Traspaso</div>
+          <div class="value" id="sinOcTraspaso">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Entrega Inmediata</div>
+          <div class="value" id="entregaInmediata">0</div>
+        </div>
+      </div>
 
       <div class="upload">
         <strong>📘 Cargar Excel ZVA05VTAS (layout NORMAL)</strong><br>
         <input type="file" id="inputExcel1" accept=".xlsx,.xls">
+        <div id="statusFile1" class="file-status"></div>
       </div>
 
       <div class="upload">
         <strong>📗 Cargar Excel VL06O KUMO (layout NORMAL2)</strong><br>
         <input type="file" id="inputExcel2" accept=".xlsx,.xls">
+        <div id="statusFile2" class="file-status"></div>
       </div>
 
-      <div id="pickingsSummary" style="margin-top:10px;display:none">
+      <div id="pickingsSummary" style="margin-top:20px;display:none">
         <table id="tablePickings">
           <thead><tr><th>Categoría</th><th>ZVA05VTAS</th><th>VL06O KUMO</th><th>Total</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
 
-      <div id="pickingsResult" class="muted" style="margin-top:8px"></div>
+      <div id="pickingsResult" class="muted" style="margin-top:12px"></div>
     </section>
 
     <!-- TRASPASOS -->
     <section id="traspasos" class="card" style="display:none">
       <h3 style="color:#0056b3;text-align:center;margin-bottom:12px">Traspasos — resumen</h3>
+      
+      <div class="summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div class="summary-card">
+          <div class="label">Total Traspasos</div>
+          <div class="value" id="totalTraspasos">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Con Salida</div>
+          <div class="value" id="conSalida">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Sin Entrada</div>
+          <div class="value" id="sinEntrada">0</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Coincidencias</div>
+          <div class="value" id="coincidencias">0</div>
+        </div>
+      </div>
 
       <div class="upload">
         <strong>📘 Cargar Excel 1 — No surtidos por centro suministrador</strong><br>
         <input type="file" id="fileTraspaso1" accept=".xlsx,.xls">
+        <div id="statusTraspaso1" class="file-status"></div>
       </div>
 
       <div class="upload">
         <strong>📗 Cargar Excel 2 — Sin entrada material con salida</strong><br>
         <input type="file" id="fileTraspaso2" accept=".xlsx,.xls">
+        <div id="statusTraspaso2" class="file-status"></div>
       </div>
 
-      <div id="traspasosTableWrap" style="margin-top:12px;display:none">
+      <div id="traspasosTableWrap" style="margin-top:20px;display:none">
         <table id="tableTraspasos">
           <thead><tr><th>Concepto</th><th>Cantidad No surtida</th><th>Sin entrada</th><th>Total</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
 
-      <div id="traspasosNote" class="muted" style="margin-top:10px"></div>
+      <div id="traspasosNote" class="muted" style="margin-top:12px"></div>
     </section>
 
     <!-- INFORME -->
@@ -135,7 +224,7 @@
       <div class="report-grid" id="reportGrid">
         <!-- tarjetas generadas por JS -->
       </div>
-      <div style="margin-top:12px;font-weight:bold;color:#b30000">
+      <div style="margin-top:20px;font-weight:bold;color:#b30000; padding: 12px; background: #fff8e6; border-radius: 8px;">
         👉 Dar seguimiento a los procesos y concluirlos con la debida validación.
       </div>
     </section>
@@ -155,6 +244,11 @@
       id==='traspasos' ? 'Gestión / Reporte de Traspasos' : 'Informe General';
   }
 
+  // Mobile menu toggle
+  document.getElementById('mobileToggle').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('active');
+  });
+
   // Datos globales
   let pick1 = [], pick2 = [];
   let trA = [], trB = [];
@@ -167,16 +261,37 @@
   document.getElementById('inputExcel2').addEventListener('change', e => procesarPick(e,2));
 
   function procesarPick(evt, tipo){
-    const file = evt.target.files[0]; if(!file) return;
+    const file = evt.target.files[0]; 
+    if(!file) return;
+    
+    const statusElement = document.getElementById(`statusFile${tipo}`);
+    statusElement.textContent = "⏳ Procesando archivo...";
+    statusElement.className = "file-status";
+    
     const reader = new FileReader();
     reader.onload = function(e){
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data,{type:'array'});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet,{defval:""});
-      if(tipo===1) pick1 = json; else pick2 = json;
-      calcularResumenPick(tipo);
-      renderPickingsTable();
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data,{type:'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet,{defval:""});
+        if(tipo===1) pick1 = json; else pick2 = json;
+        
+        statusElement.textContent = "✅ Archivo procesado correctamente";
+        statusElement.className = "file-status success";
+        
+        calcularResumenPick(tipo);
+        renderPickingsTable();
+        updateStatusSummary();
+      } catch (error) {
+        statusElement.textContent = "❌ Error al procesar el archivo";
+        statusElement.className = "file-status error";
+        console.error("Error procesando archivo:", error);
+      }
+    };
+    reader.onerror = function() {
+      statusElement.textContent = "❌ Error al leer el archivo";
+      statusElement.className = "file-status error";
     };
     reader.readAsArrayBuffer(file);
   }
@@ -185,20 +300,40 @@
     const arr = tipo===1 ? pick1 : pick2;
     let con=0, sin=0, entregaInmediata=0;
     arr.forEach(row=>{
-      // detectar columnas "Orden de Compra" y "Solicitud de Traspaso" (si existen)
+      // CORRECCIÓN: Restar 1 del conteo para "Con OC/Traspaso"
       const oc = Number(row["Orden de Compra"]) || 0;
       const tr = Number(row["Solicitud de Traspaso"]) || 0;
       const suma = oc + tr;
       if(suma > 0) con++; else sin++;
+      
       // buscar texto ENTREGA INMEDIATA en cualquier campo
       for(let k in row){
         const v = (row[k]||"").toString().toUpperCase();
         if(v.includes("ENTREGA INMEDIATA")){ entregaInmediata++; break; }
       }
     });
+    
+    // Aplicar la corrección: restar 1 del conteo "con"
+    if (con > 0) con = con - 1;
+    
     const obj = {con, sin, total: con+sin, entregaInmediata};
     if(tipo===1) resumenPick1 = obj; else resumenPick2 = obj;
     document.getElementById('pickingsResult').innerText = 'Pickings procesados ✓';
+    
+    // Actualizar tarjetas de resumen
+    updatePickingsSummaryCards();
+  }
+
+  function updatePickingsSummaryCards() {
+    const totalPickings = (resumenPick1.total || 0) + (resumenPick2.total || 0);
+    const conOcTraspaso = (resumenPick1.con || 0) + (resumenPick2.con || 0);
+    const sinOcTraspaso = (resumenPick1.sin || 0) + (resumenPick2.sin || 0);
+    const entregaInmediata = (resumenPick1.entregaInmediata || 0) + (resumenPick2.entregaInmediata || 0);
+    
+    document.getElementById('totalPickings').textContent = totalPickings;
+    document.getElementById('conOcTraspaso').textContent = conOcTraspaso;
+    document.getElementById('sinOcTraspaso').textContent = sinOcTraspaso;
+    document.getElementById('entregaInmediata').textContent = entregaInmediata;
   }
 
   function renderPickingsTable(){
@@ -226,22 +361,42 @@
 
   function cargarTraspaso(e, which){
     const file = e.target.files[0]; if(!file) return;
+    
+    const statusElement = document.getElementById(`statusTraspaso${which === 'A' ? '1' : '2'}`);
+    statusElement.textContent = "⏳ Procesando archivo...";
+    statusElement.className = "file-status";
+    
     const reader = new FileReader();
     reader.onload = function(evt){
-      const data = new Uint8Array(evt.target.result);
-      const wb = XLSX.read(data,{type:'array'});
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet,{defval:""});
-      if(which==='A') trA = json; else trB = json;
-      procesarTraspasos();
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data,{type:'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet,{defval:""});
+        if(which==='A') trA = json; else trB = json;
+        
+        statusElement.textContent = "✅ Archivo procesado correctamente";
+        statusElement.className = "file-status success";
+        
+        procesarTraspasos();
+        updateStatusSummary();
+      } catch (error) {
+        statusElement.textContent = "❌ Error al procesar el archivo";
+        statusElement.className = "file-status error";
+        console.error("Error procesando archivo:", error);
+      }
+    };
+    reader.onerror = function() {
+      statusElement.textContent = "❌ Error al leer el archivo";
+      statusElement.className = "file-status error";
     };
     reader.readAsArrayBuffer(file);
   }
 
   function procesarTraspasos(){
-    // contadores básicos
-    const totalA = trA.length;
-    const totalB = trB.length;
+    // CORRECCIÓN: Restar 1 de cada conteo en traspasos
+    const totalA = trA.length > 0 ? trA.length - 1 : 0;
+    const totalB = trB.length > 0 ? trB.length - 1 : 0;
 
     // solicitudes únicas por archivo
     const setA = new Set(), setB = new Set();
@@ -272,6 +427,16 @@
     // nota con tipos de entrega resumidos
     const tiposList = Object.entries(tipos).map(t=>`${t[0]}: ${t[1]}`).join(' · ');
     document.getElementById('traspasosNote').innerText = tiposList ? 'Tipos de entrega: ' + tiposList : 'No se detectaron valores en "Tipo de Entrega".';
+    
+    // Actualizar tarjetas de resumen
+    updateTraspasosSummaryCards(totalA, totalB, common.length);
+  }
+
+  function updateTraspasosSummaryCards(totalA, totalB, coincidencias) {
+    document.getElementById('totalTraspasos').textContent = totalA + totalB;
+    document.getElementById('conSalida').textContent = totalA;
+    document.getElementById('sinEntrada').textContent = totalB;
+    document.getElementById('coincidencias').textContent = coincidencias;
   }
 
   // --- INFORME REDISEÑADO (sin pedidos listados) ---
@@ -281,8 +446,8 @@
     const totalPick2 = resumenPick2.total || 0;
     const totalPickAll = totalPick1 + totalPick2;
 
-    const totalTrA = trA.length;
-    const totalTrB = trB.length;
+    const totalTrA = trA.length > 0 ? trA.length - 1 : 0;
+    const totalTrB = trB.length > 0 ? trB.length - 1 : 0;
 
     // tipos de entrega para mostrar (preparado en procesarTraspasos, pero recalculamos aquí por si no se hizo)
     const tipos = {};
@@ -340,19 +505,74 @@
     grid.appendChild(cardTr);
 
     // tarjeta: observaciones (motivos compactos, sin pedidos)
-   // const cardObs = document.createElement('div'); cardObs.className='report-card';
-   // cardObs.innerHTML = `<h4>Observaciones</h4>
-    //  <div class="small">Se muestran hasta 5 motivos detectados en los archivos (solo si existen campos con la palabra motivo/razón/falta/error).</div>
-    //  <div style="height:8px"></div>
-    //  ${motivosSorted.length ? motivosSorted.map(m=>`<div class="small">- ${m[0]} — ${m[1]} veces</div>`).join('') : '<div class="small">No se detectaron motivos //relevantes.</div>'}
-  //  `;
+    const cardObs = document.createElement('div'); cardObs.className='report-card';
+    cardObs.innerHTML = `<h4>Observaciones</h4>
+      <div class="small">Se muestran hasta 5 motivos detectados en los archivos (solo si existen campos con la palabra motivo/razón/falta/error).</div>
+      <div style="height:8px"></div>
+      ${motivosSorted.length ? motivosSorted.map(m=>`<div class="small">- ${m[0]} — ${m[1]} veces</div>`).join('') : '<div class="small">No se detectaron motivos relevantes.</div>'}
+    `;
     grid.appendChild(cardObs);
+  }
+
+  // Actualizar estado general
+  function updateStatusSummary() {
+    const pickingsStatus = document.getElementById('statusPickings');
+    const traspasosStatus = document.getElementById('statusTraspasos');
+    
+    const pickingsLoaded = (pick1.length > 0 || pick2.length > 0);
+    const traspasosLoaded = (trA.length > 0 || trB.length > 0);
+    
+    pickingsStatus.textContent = `📦 Pickings: ${pickingsLoaded ? 'Datos cargados' : 'Sin datos'}`;
+    traspasosStatus.textContent = `🔁 Traspasos: ${traspasosLoaded ? 'Datos cargados' : 'Sin datos'}`;
+  }
+
+  // Funciones adicionales
+  function resetAll() {
+    if (confirm("¿Está seguro de que desea reiniciar todos los datos?")) {
+      // Limpiar datos
+      pick1 = []; pick2 = [];
+      trA = []; trB = [];
+      resumenPick1 = {con:0,sin:0,total:0,entregaInmediata:0};
+      resumenPick2 = {con:0,sin:0,total:0,entregaInmediata:0};
+      
+      // Limpiar inputs de archivos
+      document.getElementById('inputExcel1').value = '';
+      document.getElementById('inputExcel2').value = '';
+      document.getElementById('fileTraspaso1').value = '';
+      document.getElementById('fileTraspaso2').value = '';
+      
+      // Limpiar estados
+      document.querySelectorAll('.file-status').forEach(el => {
+        el.textContent = '';
+        el.className = 'file-status';
+      });
+      
+      // Ocultar tablas
+      document.getElementById('pickingsSummary').style.display = 'none';
+      document.getElementById('traspasosTableWrap').style.display = 'none';
+      
+      // Limpiar resultados
+      document.getElementById('pickingsResult').innerText = '';
+      document.getElementById('traspasosNote').innerText = '';
+      
+      // Actualizar resúmenes
+      updatePickingsSummaryCards();
+      updateTraspasosSummaryCards(0, 0, 0);
+      updateStatusSummary();
+      
+      alert("Todos los datos han sido reiniciados.");
+    }
+  }
+
+  function exportToExcel() {
+    alert("Función de exportación a Excel - Esta funcionalidad se implementará próximamente.");
+    // Aquí se implementaría la lógica para exportar los datos a Excel
   }
 
   // Inicial
   mostrarBloque('pickings', document.getElementById('btnPickings'));
+  updateStatusSummary();
 </script>
 
 </body>
 </html>
-
